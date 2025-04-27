@@ -113,7 +113,10 @@ def run_optimizer(upload_file_path, input_file_path):
     df_constraints['Discount % Constraint Min'] = min_discount
 
     #######____________Reading the master file containing all combinations_______
-    df_universe = pd.read_csv('static/onetimecalculation/universe_of_combination.csv')
+    df_universe_1 = pd.read_csv('static/onetimecalculation/universe_of_combination_part1.csv')
+    df_universe_2 = pd.read_csv('static/onetimecalculation/universe_of_combination_part2.csv')
+
+    df_universe = pd.concat([df_universe_1,df_universe_2],axis=0)
 
     #########____________Constraint application_________
 
