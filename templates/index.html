@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Optimization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='optinyxus_logo.png') }}" alt="Logo">
+            </div>
+            <h1>Price Genix</h1>
+            <div class="user-info">
+                <span>Abhranil Pal</span>
+                <form action="/logout" method="get" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <!-- Left Section: Form -->
+            <div class="form-section">
+                <form action="/process" method="post" enctype="multipart/form-data">
+                    <div class="file-upload">
+                        <label for="file" class="file-label">Drag & Drop File Here or</label>
+                        <input type="file" name="file" id="file" required>
+                    </div>
+
+                    <h3>Optimization Type</h3>
+                    <div class="optimization-options">
+                        <label><input type="radio" name="optimization" value="Sales Maximization" required> Sales Maximization</label>
+                        <label><input type="radio" name="optimization" value="Profit Maximization"> Profit Maximization</label>
+                        <label><input type="radio" name="optimization" value="Profitability Maximization"> Profitability Maximization</label>
+                    </div>
+
+                    <h3>Constraints</h3>
+                    <div class="constraint-row">
+                        <label>Quantity Constraint:</label>
+                        <input type="text" name="quantity_min" placeholder="Min %" class="small-input">
+                        <input type="text" name="quantity_max" placeholder="Max %" class="small-input">
+                    </div>
+                    <div class="constraint-row">
+                        <label>Discount Constraint:</label>
+                        <input type="text" name="discount_min" placeholder="Min %" class="small-input">
+                        <input type="text" name="discount_max" placeholder="Max %" class="small-input">
+                    </div>
+                    <div class="constraint-row">
+                        <label>Sales Constraint:</label>
+                        <input type="text" name="sales_min" placeholder="Min" class="small-input">
+                        <input type="text" name="sales_max" placeholder="Max" class="small-input">
+                    </div>
+                    <div class="constraint-row">
+                        <label>Profit Constraint:</label>
+                        <input type="text" name="profit_min" placeholder="Min" class="small-input">
+                        <input type="text" name="profit_max" placeholder="Max" class="small-input">
+                    </div>
+                    <div class="constraint-row">
+                        <label>Profitability Constraint:</label>
+                        <input type="text" name="profitability_min" placeholder="Min" class="small-input">
+                        <input type="text" name="profitability_max" placeholder="Max" class="small-input">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Run Engine</button>
+                </form>
+            </div>
+
+            <!-- Right Section: Results -->
+            {% if table %}
+            <div class="results-section">
+                <h3>Optimization Results</h3>
+
+                <!-- Summary Section -->
+                <div class="summary-section">
+                    <p><strong>Total GMV:</strong> {{ total_gmv }}</p>
+                    <p><strong>Total GP:</strong> {{ total_gp }}</p>
+                    <p><strong>Average GP%:</strong> {{ avg_gp_per }}</p>
+                </div>
+
+                <!-- Slider for Table -->
+                <div class="table-slider">
+                    <div class="table-container">
+                        {{ table|safe }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <form action="/index" method="get" style="display: inline;">
+                        <button type="submit" class="btn">Refresh</button>
+                    </form>
+                    <form action="/download" method="post" style="display: inline;">
+                        <button type="submit" class="btn">Download Results</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Price Genix. All rights reserved.</p>
+    </footer>
+</body>
+</html>
