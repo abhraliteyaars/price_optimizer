@@ -30,11 +30,19 @@ def run_optimizer(upload_file_path, input_file_path):
     df['Units (Pred.)'] = pd.to_numeric(df['Units (Pred.)'], errors='coerce').fillna(0)
     df.fillna(0, inplace=True)
 
+
     # Calculate the total units from the upload_file
     total_units_from_upload = df['Units (Pred.)'].sum()
 
-    # Debugging: Print total units from upload_file
-    print(f"Total Units from Upload File: {total_units_from_upload}")
+    #calculate base numbers
+    df_init['Discount'] = df_init['MOP'] - df_init['Test Price']
+    df_init['Discount %'] = (df_init['Discount'] / df_init['MOP']) * 100
+    df_init['Discount_per_unit'] = df_init['Discount'] / df_init['Units (Pred.)']
+    df_init['GP_per_unit'] = df_init['Test Price'] - df_init['NLC']
+    df_init['GP'] = df_init['GP_per_unit'] * df_init['Units (Pred.)']
+    df_init['GMV'] = df_init['Test Price'] * df_init['Units (Pred.)']
+    df_init['GP_%'] = (df_init['GP'] / df_init['GMV']) * 100
+    
 
     #init_values
     
@@ -85,9 +93,9 @@ def run_optimizer(upload_file_path, input_file_path):
     else:
         quantity_upper_bound = (df['Stock Available'] * df['Quantity Constraint Max'][0] / 100)
 
-        #log the profitability constraints
-    print('quantity upper:', quantity_upper_bound)
-    print('quantity lower:', quantity_lower_bound)
+    #     #log the profitability constraints
+    # print('quantity upper:', quantity_upper_bound)
+    # print('quantity lower:', quantity_lower_bound)
 
     # 5. Discount
     discount_lower_bound = df['Discount % Constraint Min']
@@ -252,9 +260,27 @@ def run_optimizer(upload_file_path, input_file_path):
         total_gmv = format_currency(total_gmv_value, 'INR', locale='en_IN')
         total_gp = format_currency(total_gp_value, 'INR', locale='en_IN')
 
+
+        total_base_gmv_value = df_init['GMV'].sum()
+        total_base_gmv = format_currency(total_base_gmv_value, 'INR', locale='en_IN')
+        
+        total_base_gp_value = df_init['GP'].sum()
+        total_base_gp = format_currency(total_base_gp_value, 'INR', locale='en_IN')
+        
+
+
         # Calculate the average GP% as the mean of the GP_% column
         avg_gp_per_value = final_long_df['GP_%'].mean()
         avg_gp_per = f"{avg_gp_per_value:.2f}%" if pd.notnull(avg_gp_per_value) else "0.00%"
+
+        avg_base_gp_per = (df_init['GP'] / df_init['GMV']).mean() *100
+        avg_base_gp_per = f"{avg_base_gp_per:.2f}%" if pd.notnull(avg_base_gp_per) else "0.00%"
+
+        # Debugging: Print total units from upload_file
+        print(f"Total Units from Upload File: {total_units_from_upload}")
+        print(f"Total Base GMV: {total_base_gmv}")
+        print(f"Total Base GP: {total_base_gp}")
+
 
     # Format specified columns as INR
     currency_columns = ['MOP', 'NLC', 'Discount/Unit', 'Discount', 'GP', 'GMV','Price','GP_per_unit']
@@ -270,7 +296,7 @@ def run_optimizer(upload_file_path, input_file_path):
                   'Units', 'GP_per_unit', 'GP', 'GMV', 'GP_%']
     final_long_df = final_long_df[cols_order]
 
-    return final_long_df, total_gmv, total_gp, avg_gp_per
+    return final_long_df, total_gmv, total_gp, avg_gp_per ,total_base_gmv, total_base_gp, avg_base_gp_per
 
 
 
