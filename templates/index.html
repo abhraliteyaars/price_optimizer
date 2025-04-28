@@ -10,7 +10,7 @@
     <header>
         <div class="header-container">
             <div class="logo">
-                <img src="{{ url_for('static', filename='optinyxus_logo.png') }}" alt="Logo">
+                <img src="{{ url_for('static', filename='new_logo.png') }}" alt="Logo" class="circular-logo">
             </div>
             <h1>Price Genix</h1>
             <div class="user-info">
@@ -25,7 +25,17 @@
         <div class="container">
             <!-- Left Section: Form -->
             <div class="form-section">
+                {% if error_message %}
+                <div class="error-message">
+                    {{ error_message }}
+                </div>
+                {% endif %}
                 <form action="/process" method="post" enctype="multipart/form-data">
+                    {% if last_uploaded_file %}
+                    <div class="last-uploaded-file">
+                        Last uploaded file: <strong>{{ last_uploaded_file }}</strong>
+                    </div>
+                    {% endif %}
                     <div class="file-upload">
                         <label for="file" class="file-label">Drag & Drop File Here or</label>
                         <input type="file" name="file" id="file" required>
@@ -33,36 +43,58 @@
 
                     <h3>Optimization Type</h3>
                     <div class="optimization-options">
-                        <label><input type="radio" name="optimization" value="Sales Maximization" required> Sales Maximization</label>
-                        <label><input type="radio" name="optimization" value="Profit Maximization"> Profit Maximization</label>
-                        <label><input type="radio" name="optimization" value="Profitability Maximization"> Profitability Maximization</label>
+                        <label>
+                            <input type="radio" name="optimization" value="Sales Maximization" required 
+                                {% if saved_inputs.optimization == 'Sales Maximization' %}checked{% endif %}>
+                            Sales Maximization
+                        </label>
+                        <label>
+                            <input type="radio" name="optimization" value="Profit Maximization"
+                                {% if saved_inputs.optimization == 'Profit Maximization' %}checked{% endif %}>
+                            Profit Maximization
+                        </label>
+                        <label>
+                            <input type="radio" name="optimization" value="Profitability Maximization"
+                                {% if saved_inputs.optimization == 'Profitability Maximization' %}checked{% endif %}>
+                            Profitability Maximization
+                        </label>
                     </div>
 
                     <h3>Constraints</h3>
                     <div class="constraint-row">
-                        <label>Quantity Constraint:</label>
-                        <input type="text" name="quantity_min" placeholder="Min %" class="small-input">
-                        <input type="text" name="quantity_max" placeholder="Max %" class="small-input">
+                        <label for="quantity_min">Quantity Constraint:</label>
+                        <input type="text" name="quantity_min" id="quantity_min" placeholder="Min %" class="small-input"
+                            value="{{ saved_inputs.quantity_min }}">
+                        <input type="text" name="quantity_max" placeholder="Max %" class="small-input"
+                            value="{{ saved_inputs.quantity_max }}">
                     </div>
                     <div class="constraint-row">
-                        <label>Discount Constraint:</label>
-                        <input type="text" name="discount_min" placeholder="Min %" class="small-input">
-                        <input type="text" name="discount_max" placeholder="Max %" class="small-input">
+                        <label for="discount_min">Discount Constraint:</label>
+                        <input type="text" name="discount_min" id="discount_min" placeholder="Min %" class="small-input"
+                            value="{{ saved_inputs.discount_min }}">
+                        <input type="text" name="discount_max" placeholder="Max %" class="small-input"
+                            value="{{ saved_inputs.discount_max }}">
                     </div>
                     <div class="constraint-row">
-                        <label>Sales Constraint:</label>
-                        <input type="text" name="sales_min" placeholder="Min" class="small-input">
-                        <input type="text" name="sales_max" placeholder="Max" class="small-input">
+                        <label for="sales_min">Sales Constraint:</label>
+                        <input type="text" name="sales_min" id="sales_min" placeholder="Min" class="small-input"
+                            value="{{ saved_inputs.sales_min }}">
+                        <input type="text" name="sales_max" placeholder="Max" class="small-input"
+                            value="{{ saved_inputs.sales_max }}">
                     </div>
                     <div class="constraint-row">
-                        <label>Profit Constraint:</label>
-                        <input type="text" name="profit_min" placeholder="Min" class="small-input">
-                        <input type="text" name="profit_max" placeholder="Max" class="small-input">
+                        <label for="profit_min">Profit Constraint:</label>
+                        <input type="text" name="profit_min" id="profit_min" placeholder="Min" class="small-input"
+                            value="{{ saved_inputs.profit_min }}">
+                        <input type="text" name="profit_max" placeholder="Max" class="small-input"
+                            value="{{ saved_inputs.profit_max }}">
                     </div>
                     <div class="constraint-row">
-                        <label>Profitability Constraint:</label>
-                        <input type="text" name="profitability_min" placeholder="Min" class="small-input">
-                        <input type="text" name="profitability_max" placeholder="Max" class="small-input">
+                        <label for="profitability_min">Profitability Constraint:</label>
+                        <input type="text" name="profitability_min" id="profitability_min" placeholder="Min" class="small-input"
+                            value="{{ saved_inputs.profitability_min }}">
+                        <input type="text" name="profitability_max" placeholder="Max" class="small-input"
+                            value="{{ saved_inputs.profitability_max }}">
                     </div>
 
                     <button type="submit" class="btn-primary">Run Engine</button>
@@ -74,12 +106,20 @@
             <div class="results-section">
                 <h3>Optimization Results</h3>
 
-                <!-- Summary Section -->
-                <div class="summary-section">
-                    <p><strong>Total GMV:</strong> {{ total_gmv }}</p>
-                    <p><strong>Total GP:</strong> {{ total_gp }}</p>
-                    <p><strong>Average GP%:</strong> {{ avg_gp_per }}</p>
-                </div>
+                <div class="sumary-sections">
+                    <!-- Summary Section -->
+                    <div class="optimized-summary-section">
+                        <p><strong>Total Optimized GMV:</strong> {{ total_gmv }}</p>
+                        <p><strong>Total Optimized GP:</strong> {{ total_gp }}</p>
+                        <p><strong>Average Optimized GP%:</strong> {{ avg_gp_per }}</p>
+                    </div>
+
+                    <div class="base-summary-section">
+                        <p><strong>Total Base GMV:</strong> {{ total_base_gmv }}</p>
+                        <p><strong>Total Base GP:</strong> {{ total_base_gp }}</p>
+                        <p><strong>Average Base GP%:</strong> {{ avg_base_gp_per }}</p>
+                    </div>
+                </div>        
 
                 <!-- Slider for Table -->
                 <div class="table-slider">
