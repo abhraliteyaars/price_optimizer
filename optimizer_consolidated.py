@@ -74,7 +74,7 @@ def run_optimizer(upload_file_path, input_file_path):
         profit_constraint_upper = df['Profit Constraint Max'][0]
 
     # 3. Profitability constraint
-    profitability_constraint_lower = df['Profitability Constraint Min'][0]/100
+    profitability_constraint_lower = df['Profitability Constraint Min'][0]
     if df['Profitability Constraint Max'][0] == 0:
         profitability_constraint_upper = (((df['MOP'] - df['NLC']) * df['Stock Available']) / 
                                           (df['Stock Available'] * df['MOP'])).sum()*100
