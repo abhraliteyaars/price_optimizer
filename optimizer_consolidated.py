@@ -77,7 +77,7 @@ def run_optimizer(upload_file_path, input_file_path):
     profitability_constraint_lower = df['Profitability Constraint Min'][0]/100
     if df['Profitability Constraint Max'][0] == 0:
         profitability_constraint_upper = (((df['MOP'] - df['NLC']) * df['Stock Available']) / 
-                                          (df['Stock Available'] * df['MOP'])).sum()
+                                          (df['Stock Available'] * df['MOP'])).sum()*100
     else:
         profitability_constraint_upper = df['Profitability Constraint Max'][0]
 
@@ -121,10 +121,6 @@ def run_optimizer(upload_file_path, input_file_path):
     df_constraints['Discount % Constraint Min'] = min_discount
 
     #######____________Reading the master file containing all combinations_______
-    # df_universe_1 = pd.read_csv('static/onetimecalculation/universe_of_combination_part1.csv')
-    # df_universe_2 = pd.read_csv('static/onetimecalculation/universe_of_combination_part2.csv')
-
-    # df_universe = pd.concat([df_universe_1,df_universe_2],axis=0)
     df_universe = pd.read_csv('static/onetimecalculation/universe_of_combination_sample.csv')
 
     #########____________Constraint application_________
@@ -162,13 +158,25 @@ def run_optimizer(upload_file_path, input_file_path):
     ])
 
     ### Portfolio constraints
+    df_universe['GP%'] = (df_universe['Total_GP']/df_universe['Total_GMV'])*100
+
     df_universe = df_universe[(df_universe['Total_GMV'] < sales_constraint_upper) &
                                (df_universe['Total_GMV'] > sales_constraint_lower)]
     df_universe = df_universe[(df_universe['Total_GP'] < profit_constraint_upper) &
                                (df_universe['Total_GP'] > profit_constraint_lower)]
-    df_universe = df_universe[(df_universe['Avg_GP_per'] < (profitability_constraint_upper)*100) &
-                               (df_universe['Avg_GP_per'] > (profitability_constraint_lower)*100)]
 
+
+    print(df_universe['Total_GMV'].head())
+    print(df_universe['Total_GP'].head())
+    print(df_universe['GP%'].head())
+    print('profitability upper constraint',profitability_constraint_upper)
+    df_universe = df_universe[(df_universe['GP%'] < profitability_constraint_upper) &
+                               (df_universe['GP%'] > profitability_constraint_lower)]
+    
+    print('Max GP%',df_universe['GP%'].max())
+
+
+    
     # New Constraint: Sum of all quantities sold should equal the sum of units from the upload_file
     df_universe['Total_Units_Sold'] = (
         pd.to_numeric(df_universe['Units_Bosch'], errors='coerce').fillna(0) +
@@ -192,7 +200,7 @@ def run_optimizer(upload_file_path, input_file_path):
     elif obj_function == 'Profit Maximization':
         output_df = df_universe[df_universe['Total_GP'] == df_universe['Total_GP'].max()]
     elif obj_function == 'Profitability Maximization':
-        output_df = df_universe[df_universe['Avg_GP_per'] == df_universe['Avg_GP_per'].max()]
+        output_df = df_universe[df_universe['GP%'] == df_universe['GP%'].max()]
     else:  # Default: maximize sales
         output_df = df_universe[df_universe['Total_GMV'] == df_universe['Total_GMV'].max()]
 
@@ -270,14 +278,14 @@ def run_optimizer(upload_file_path, input_file_path):
 
 
         # Calculate the average GP% as the mean of the GP_% column
-        avg_gp_per_value = final_long_df['GP_%'].mean()
+        avg_gp_per_value = (total_gp_value/total_gmv_value)*100
         avg_gp_per = f"{avg_gp_per_value:.2f}%" if pd.notnull(avg_gp_per_value) else "0.00%"
 
-        avg_base_gp_per = (df_init['GP'] / df_init['GMV']).mean() *100
+        avg_base_gp_per = (df_init['GP'].sum() / df_init['GMV'].sum()) *100
         avg_base_gp_per = f"{avg_base_gp_per:.2f}%" if pd.notnull(avg_base_gp_per) else "0.00%"
 
         # Debugging: Print total units from upload_file
-        print(f"Total Units from Upload File: {total_units_from_upload}")
+        print(f"avg_gp_per: {avg_gp_per}")
         print(f"Total Base GMV: {total_base_gmv}")
         print(f"Total Base GP: {total_base_gp}")
 
@@ -297,7 +305,3 @@ def run_optimizer(upload_file_path, input_file_path):
     final_long_df = final_long_df[cols_order]
 
     return final_long_df, total_gmv, total_gp, avg_gp_per ,total_base_gmv, total_base_gp, avg_base_gp_per
-
-
-
-
